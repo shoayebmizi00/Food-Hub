@@ -1,0 +1,358 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  RESTAURANT_OWNER
+  RIDER
+  ADMIN
+  SUPER_ADMIN
+  STAFF
+  MANAGER
+  CASHIER
+}
+
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  passwordHash      String
+  fullName          String?
+  phone             String?
+  avatarUrl         String?
+  role              Role      @default(CUSTOMER)
+  isActive          Boolean   @default(true)
+  isVerified        Boolean   @default(false)
+  verificationCode  String?
+  resetToken        String?
+  resetTokenExpires DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model Restaurant {
+  id               String   @id @default(cuid())
+  name             String
+  slug             String   @unique
+  description      String?
+  imageUrl         String?
+  coverImageUrl    String?
+  cuisineType      String?
+  address          String
+  phone            String?
+  email            String?
+  ownerId          String?
+  rating           Float    @default(0)
+  totalReviews     Int      @default(0)
+  deliveryFee      Float    @default(0)
+  minOrder         Float    @default(0)
+  deliveryRadiusKm Float    @default(5)
+  avgDeliveryTime  String   @default("30-45 min")
+  openingTime      String   @default("09:00")
+  closingTime      String   @default("22:00")
+  isActive         Boolean  @default(true)
+  isFeatured       Boolean  @default(false)
+  commissionRate   Float    @default(15)
+  status           String   @default("pending")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model FoodCategory {
+  id           String   @id @default(cuid())
+  name         String
+  slug         String?
+  icon         String?
+  imageUrl     String?
+  description  String?
+  sortOrder    Int      @default(0)
+  isActive     Boolean  @default(true)
+  restaurantId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model FoodItem {
+  id            String   @id @default(cuid())
+  name          String
+  slug          String?
+  description   String?
+  imageUrl      String?
+  price         Float
+  discountPrice Float?
+  categoryId    String?
+  restaurantId  String
+  isAvailable   Boolean  @default(true)
+  isFeatured    Boolean  @default(false)
+  isVegetarian  Boolean  @default(false)
+  isSpicy       Boolean  @default(false)
+  prepTime      String   @default("15-20 min")
+  calories      Int?
+  stockQty      Int      @default(100)
+  sortOrder     Int      @default(0)
+  tags          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Address {
+  id          String   @id @default(cuid())
+  userId      String
+  label       String   @default("home")
+  fullAddress String
+  area        String?
+  city        String?
+  zip         String?
+  lat         Float?
+  lng         Float?
+  phone       String?
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model CartItem {
+  id                  String   @id @default(cuid())
+  customerId          String
+  foodItemId          String
+  restaurantId        String
+  foodName            String?
+  foodImage           String?
+  price               Float
+  quantity            Int      @default(1)
+  specialInstructions String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([customerId, foodItemId])
+}
+
+model Favorite {
+  id           String   @id @default(cuid())
+  userId       String
+  restaurantId String?
+  foodItemId   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Coupon {
+  id            String    @id @default(cuid())
+  code          String    @unique
+  description   String?
+  discountType  String    @default("percentage")
+  discountValue Float
+  minOrder      Float     @default(0)
+  maxDiscount   Float?
+  usageLimit    Int?
+  usedCount     Int       @default(0)
+  restaurantId  String?
+  startDate     DateTime?
+  endDate       DateTime?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Order {
+  id                String    @id @default(cuid())
+  orderNumber       String    @unique
+  customerId        String
+  restaurantId      String
+  riderId           String?
+  itemsJson         String
+  subtotal          Float     @default(0)
+  deliveryFee       Float     @default(0)
+  discount          Float     @default(0)
+  tax               Float     @default(0)
+  total             Float
+  status            String    @default("pending")
+  paymentMethod     String    @default("cash")
+  paymentStatus     String    @default("pending")
+  deliveryAddress   String?
+  deliveryLat       Float?
+  deliveryLng       Float?
+  notes             String?
+  couponCode        String?
+  estimatedDelivery String?
+  deliveredAt       DateTime?
+  cancelledReason   String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model Payment {
+  id            String   @id @default(cuid())
+  orderId       String
+  userId        String
+  provider      String
+  method        String
+  amount        Float
+  currency      String   @default("BDT")
+  status        String   @default("pending")
+  transactionId String?
+  gatewayData   Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model DeliveryRider {
+  id              String   @id @default(cuid())
+  userId          String?
+  name            String
+  phone           String
+  email           String?
+  vehicleType     String   @default("motorcycle")
+  vehicleNumber   String?
+  licenseNumber   String?
+  photoUrl        String?
+  isAvailable     Boolean  @default(true)
+  isActive        Boolean  @default(true)
+  currentLat      Float?
+  currentLng      Float?
+  totalDeliveries Int      @default(0)
+  totalEarnings   Float    @default(0)
+  rating          Float    @default(5)
+  status          String   @default("available")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model InventoryItem {
+  id            String    @id @default(cuid())
+  restaurantId  String
+  name          String
+  sku           String?
+  category      String?
+  unit          String    @default("piece")
+  quantity      Float     @default(0)
+  minStock      Float     @default(10)
+  costPrice     Float?
+  supplierId    String?
+  lastRestocked DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Supplier {
+  id            String   @id @default(cuid())
+  restaurantId  String
+  name          String
+  contactPerson String?
+  phone         String
+  email         String?
+  address       String?
+  category      String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Purchase {
+  id            String   @id @default(cuid())
+  restaurantId  String
+  supplierId    String?
+  invoiceNumber String?
+  itemsJson     String
+  subtotal      Float
+  tax           Float    @default(0)
+  total         Float
+  status        String   @default("received")
+  purchasedAt   DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Expense {
+  id           String   @id @default(cuid())
+  restaurantId String
+  category     String   @default("other")
+  description  String
+  amount       Float
+  date         DateTime @default(now())
+  receiptUrl   String?
+  approvedBy   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  message     String
+  type        String   @default("system")
+  referenceId String?
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Review {
+  id           String   @id @default(cuid())
+  customerId   String
+  customerName String?
+  restaurantId String
+  orderId      String?
+  foodItemId   String?
+  rating       Int
+  comment      String?
+  reply        String?
+  isVisible    Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model SupportTicket {
+  id          String   @id @default(cuid())
+  userId      String
+  userName    String?
+  orderId     String?
+  subject     String
+  description String
+  status      String   @default("open")
+  priority    String   @default("medium")
+  adminReply  String?
+  category    String   @default("other")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Banner {
+  id        String   @id @default(cuid())
+  title     String
+  subtitle  String?
+  imageUrl  String
+  linkUrl   String?
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  position  String   @default("hero")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Setting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json
+  isPublic  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model StaffMembership {
+  id           String   @id @default(cuid())
+  userId       String
+  restaurantId String
+  role         Role
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, restaurantId])
+}
