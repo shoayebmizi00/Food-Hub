@@ -19,7 +19,7 @@ From the project root:
 
 ```bash
 copy .env.example .env
-npm install
+npm install --prefix frontend
 ```
 
 The default frontend API URL is:
@@ -115,7 +115,7 @@ New local registrations use development OTP `123456` unless `DEV_OTP` is changed
 - `/api/payments` — payment creation and future gateway webhooks
 - `/api/dashboard` — admin and store dashboard aggregates
 
-The frontend API layer is in `src/services/api/client.js`.
+The frontend API layer is in `frontend/src/services/api/client.js`.
 
 ## Payment gateway integration
 
@@ -172,7 +172,7 @@ Or set `VITE_API_URL` in your static host build environment.
 VITE_API_URL=https://food-hub-xg61.onrender.com/api
 ```
 
-Deploy the `dist/` folder (or use the root `Dockerfile` nginx image).
+Deploy the `frontend/dist/` folder (or use `frontend/Dockerfile` with the repository root as the Docker context).
 
 ### Supabase
 
@@ -188,7 +188,7 @@ docker compose up -d
 docker build -t food-hub-api ./backend
 
 # Frontend image
-docker build --build-arg VITE_API_URL=http://localhost:4000/api -t food-hub-web .
+docker build -f frontend/Dockerfile --build-arg VITE_API_URL=http://localhost:4000/api -t food-hub-web .
 ```
 
 ### Post-deploy database setup

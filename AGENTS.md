@@ -2,8 +2,8 @@
 
 This repository is a local React, Express, Prisma, and PostgreSQL application.
 
-- Frontend source: `src/`
-- Frontend REST client: `src/services/api/client.js`
+- Frontend source: `frontend/src/`
+- Frontend REST client: `frontend/src/services/api/client.js`
 - Backend source: `backend/src/`
 - Prisma schema and migrations: `backend/prisma/`
 - Local PostgreSQL: `docker-compose.yml`
