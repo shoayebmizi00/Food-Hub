@@ -1,6 +1,7 @@
 // Store orders page placeholder.
 import React, { useState, useEffect } from 'react';
 import { api } from '@/services/api/client';
+import { useStoreRestaurant } from '@/lib/useStoreRestaurant';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import StatusBadge from '@/components/shared/StatusBadge';
@@ -11,15 +12,14 @@ export default function StoreOrders({ user }) {
   const [orders, setOrders] = useState([]);
   const [filter, setFilter] = useState('all');
   const { toast } = useToast();
+  const { restaurant } = useStoreRestaurant(user);
 
   const load = async () => {
-    const restaurants = await api.entities.Restaurant.filter({ owner_id: user.id }, '-created_date', 1);
-    if (restaurants.length > 0) {
-      setOrders(await api.entities.Order.filter({ restaurant_id: restaurants[0].id }, '-created_date', 50));
-    }
+    if (!restaurant?.id) return;
+    setOrders(await api.entities.Order.filter({ restaurant_id: restaurant.id }, '-created_date', 50));
   };
 
-  useEffect(() => { if (user?.id) load(); }, [user]);
+  useEffect(() => { if (restaurant?.id) load(); }, [restaurant?.id]);
 
   const updateStatus = async (id, status) => {
     await api.entities.Order.update(id, { status });

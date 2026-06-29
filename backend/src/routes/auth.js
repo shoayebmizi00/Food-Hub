@@ -28,17 +28,19 @@ authRouter.post("/register", async (req, res) => {
     role: z.string().optional(),
   }).parse(req.body)
 
+  const allowedRoles = new Set(["customer", "restaurant_owner", "rider"])
   const roleMap = {
     customer: "CUSTOMER",
     restaurant_owner: "RESTAURANT_OWNER",
     rider: "RIDER",
   }
+  const requestedRole = allowedRoles.has(input.role) ? roleMap[input.role] : "CUSTOMER"
   const user = await prisma.user.create({
     data: {
       email: input.email.toLowerCase(),
       passwordHash: await bcrypt.hash(input.password, 12),
       fullName: input.full_name,
-      role: roleMap[input.role] || "CUSTOMER",
+      role: requestedRole,
       verificationCode: config.devOtp,
     },
   })

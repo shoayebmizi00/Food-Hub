@@ -1,6 +1,7 @@
 // Store expenses page placeholder.
 import React, { useState, useEffect } from 'react';
 import { api } from '@/services/api/client';
+import { useStoreRestaurant } from '@/lib/useStoreRestaurant';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,16 +13,16 @@ import { useToast } from '@/components/ui/use-toast';
 
 export default function StoreExpenses({ user }) {
   const [expenses, setExpenses] = useState([]);
-  const [restaurant, setRestaurant] = useState(null);
+  const { restaurant } = useStoreRestaurant(user);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ category: 'other', description: '', amount: '', date: new Date().toISOString().split('T')[0] });
   const { toast } = useToast();
 
   const load = async () => {
-    const restaurants = await api.entities.Restaurant.filter({ owner_id: user.id }, '-created_date', 1);
-    if (restaurants.length > 0) { setRestaurant(restaurants[0]); setExpenses(await api.entities.Expense.filter({ restaurant_id: restaurants[0].id }, '-date', 50)); }
+    if (!restaurant?.id) return;
+    setExpenses(await api.entities.Expense.filter({ restaurant_id: restaurant.id }, '-date', 50));
   };
-  useEffect(() => { if (user?.id) load(); }, [user]);
+  useEffect(() => { if (restaurant?.id) load(); }, [restaurant?.id]);
 
   const handleSave = async () => {
     if (!form.description || !form.amount) return;

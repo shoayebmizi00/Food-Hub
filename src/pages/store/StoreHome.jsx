@@ -1,6 +1,7 @@
 // Store home page placeholder.
 import React, { useState, useEffect } from 'react';
 import { api } from '@/services/api/client';
+import { useStoreRestaurant } from '@/lib/useStoreRestaurant';
 import { Package, DollarSign, TrendingUp, Clock } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import StatusBadge from '@/components/shared/StatusBadge';
@@ -8,21 +9,16 @@ import { motion } from 'framer-motion';
 
 export default function StoreHome({ user }) {
   const [orders, setOrders] = useState([]);
-  const [restaurant, setRestaurant] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { restaurant, loading } = useStoreRestaurant(user);
 
   useEffect(() => {
     async function load() {
-      const restaurants = await api.entities.Restaurant.filter({ owner_id: user.id }, '-created_date', 1);
-      if (restaurants.length > 0) {
-        setRestaurant(restaurants[0]);
-        const orderData = await api.entities.Order.filter({ restaurant_id: restaurants[0].id }, '-created_date', 50);
-        setOrders(orderData);
-      }
-      setLoading(false);
+      if (!restaurant?.id) return;
+      const orderData = await api.entities.Order.filter({ restaurant_id: restaurant.id }, '-created_date', 50);
+      setOrders(orderData);
     }
-    if (user?.id) load();
-  }, [user]);
+    if (restaurant?.id) load();
+  }, [restaurant?.id]);
 
   const totalRevenue = orders.reduce((s, o) => s + (o.status !== 'cancelled' ? (o.total || 0) : 0), 0);
   const pendingOrders = orders.filter(o => ['pending', 'confirmed', 'preparing'].includes(o.status)).length;
@@ -34,6 +30,15 @@ export default function StoreHome({ user }) {
   ];
 
   if (loading) return <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" /></div>;
+
+  if (!restaurant) {
+    return (
+      <div className="text-center py-20">
+        <h2 className="text-lg font-semibold mb-2">No store assigned</h2>
+        <p className="text-sm text-muted-foreground">Contact your store owner or platform admin to get access.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

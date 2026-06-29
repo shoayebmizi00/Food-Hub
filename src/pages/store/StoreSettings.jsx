@@ -1,6 +1,7 @@
 // Store settings page placeholder.
 import React, { useState, useEffect } from 'react';
 import { api } from '@/services/api/client';
+import { useStoreRestaurant } from '@/lib/useStoreRestaurant';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,21 +11,14 @@ import { Save } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
 export default function StoreSettings({ user }) {
-  const [restaurant, setRestaurant] = useState(null);
+  const { restaurant, loading } = useStoreRestaurant(user);
   const [form, setForm] = useState({});
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    async function load() {
-      const restaurants = await api.entities.Restaurant.filter({ owner_id: user.id }, '-created_date', 1);
-      if (restaurants.length > 0) {
-        setRestaurant(restaurants[0]);
-        setForm(restaurants[0]);
-      }
-    }
-    if (user?.id) load();
-  }, [user]);
+    if (restaurant) setForm(restaurant);
+  }, [restaurant]);
 
   const handleSave = async () => {
     setSaving(true);

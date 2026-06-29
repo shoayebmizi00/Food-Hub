@@ -89,6 +89,9 @@ export default function Navbar({ user, cartCount = 0, onCartClick, onLogout }) {
                     <DropdownMenuItem asChild><Link to="/orders">My Orders</Link></DropdownMenuItem>
                     <DropdownMenuItem asChild><Link to="/favorites">Favorites</Link></DropdownMenuItem>
                     <DropdownMenuItem asChild><Link to="/addresses">Addresses</Link></DropdownMenuItem>
+                    {user.role === 'super_admin' && (
+                      <DropdownMenuItem asChild><Link to="/super-admin">Super Admin</Link></DropdownMenuItem>
+                    )}
                     {(['admin', 'super_admin'].includes(user.role)) && (
                       <DropdownMenuItem asChild><Link to="/admin">Admin Panel</Link></DropdownMenuItem>
                     )}

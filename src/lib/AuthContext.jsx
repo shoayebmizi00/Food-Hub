@@ -19,9 +19,12 @@ export function AuthProvider({ children }) {
       }
       setUser(await api.auth.me())
     } catch (error) {
-      api.auth.logout()
-      setUser(null)
-      if (error.status !== 401) setAuthError({ type: "api_error", message: error.message })
+      if (error.status === 401) {
+        api.auth.logout()
+        setUser(null)
+      } else {
+        setAuthError({ type: "api_error", message: error.message })
+      }
     } finally {
       setIsLoadingAuth(false)
       setAuthChecked(true)

@@ -13,12 +13,13 @@ async function user(email, fullName, role) {
 }
 
 async function main() {
-  const admin = await user("admin@foodcorner.local", "Super Admin", "SUPER_ADMIN")
+  const superAdmin = await user("admin@foodcorner.local", "Super Admin", "SUPER_ADMIN")
+  await user("platform-admin@foodcorner.local", "Platform Admin", "ADMIN")
   const owner = await user("owner@foodcorner.local", "Demo Store Owner", "RESTAURANT_OWNER")
   const customer = await user("customer@foodcorner.local", "Demo Customer", "CUSTOMER")
   const riderUser = await user("rider@foodcorner.local", "Demo Rider", "RIDER")
-  await user("manager@foodcorner.local", "Demo Manager", "MANAGER")
-  await user("cashier@foodcorner.local", "Demo Cashier", "CASHIER")
+  const manager = await user("manager@foodcorner.local", "Demo Manager", "MANAGER")
+  const cashier = await user("cashier@foodcorner.local", "Demo Cashier", "CASHIER")
 
   const restaurant = await prisma.restaurant.upsert({
     where: { slug: "dhaka-kitchen" },
@@ -129,7 +130,23 @@ async function main() {
     },
   })
 
-  console.log("Seed complete", { admin: admin.email, owner: owner.email, customer: customer.email })
+  await prisma.staffMembership.upsert({
+    where: { userId_restaurantId: { userId: manager.id, restaurantId: restaurant.id } },
+    update: { isActive: true, role: "MANAGER" },
+    create: { userId: manager.id, restaurantId: restaurant.id, role: "MANAGER" },
+  })
+  await prisma.staffMembership.upsert({
+    where: { userId_restaurantId: { userId: cashier.id, restaurantId: restaurant.id } },
+    update: { isActive: true, role: "CASHIER" },
+    create: { userId: cashier.id, restaurantId: restaurant.id, role: "CASHIER" },
+  })
+
+  console.log("Seed complete", {
+    superAdmin: superAdmin.email,
+    admin: "platform-admin@foodcorner.local",
+    owner: owner.email,
+    customer: customer.email,
+  })
 }
 
 main()

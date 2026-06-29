@@ -7,5 +7,7 @@ COPY prisma ./prisma
 RUN npm run prisma:generate
 COPY src ./src
 
-EXPOSE 4000
-CMD ["npm", "start"]
+ENV NODE_ENV=production
+EXPOSE 10000
+
+CMD ["sh", "-c", "npm run db:deploy && npm start"]

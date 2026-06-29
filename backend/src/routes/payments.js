@@ -33,6 +33,9 @@ paymentsRouter.post("/create", requireAuth, async (req, res) => {
   const { order_id, provider = "cash" } = req.body
   const order = await prisma.order.findUnique({ where: { id: order_id } })
   if (!order) return res.status(404).json({ message: "Order not found" })
+  if (order.customerId !== req.user.id) {
+    return res.status(403).json({ message: "You can only pay for your own orders" })
+  }
   const adapter = adapters[provider]
   if (!adapter) return res.status(400).json({ message: "Unsupported payment provider" })
   const result = await adapter.create({ order, user: req.user })
@@ -43,9 +46,16 @@ paymentsRouter.post("/create", requireAuth, async (req, res) => {
       provider,
       method: provider === "cash" ? "cod" : "online",
       amount: order.total,
-      status: result.status,
+      status: provider === "cash" ? "cash_on_delivery" : result.status,
       transactionId: result.transactionId,
       gatewayData: result,
+    },
+  })
+  await prisma.order.update({
+    where: { id: order.id },
+    data: {
+      paymentStatus: provider === "cash" ? "cash_on_delivery" : result.status,
+      paymentMethod: provider,
     },
   })
   res.status(201).json(payment)

@@ -1,6 +1,7 @@
 // Store menu page placeholder.
 import React, { useState, useEffect } from 'react';
 import { api } from '@/services/api/client';
+import { useStoreRestaurant } from '@/lib/useStoreRestaurant';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,21 +13,18 @@ import { useToast } from '@/components/ui/use-toast';
 
 export default function StoreMenu({ user }) {
   const [items, setItems] = useState([]);
-  const [restaurant, setRestaurant] = useState(null);
+  const { restaurant } = useStoreRestaurant(user);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ name: '', description: '', price: '', discount_price: '', image_url: '', is_available: true, is_featured: false, is_vegetarian: false, is_spicy: false, prep_time: '15-20 min' });
   const { toast } = useToast();
 
   const load = async () => {
-    const restaurants = await api.entities.Restaurant.filter({ owner_id: user.id }, '-created_date', 1);
-    if (restaurants.length > 0) {
-      setRestaurant(restaurants[0]);
-      setItems(await api.entities.FoodItem.filter({ restaurant_id: restaurants[0].id }, 'sort_order', 50));
-    }
+    if (!restaurant?.id) return;
+    setItems(await api.entities.FoodItem.filter({ restaurant_id: restaurant.id }, 'sort_order', 50));
   };
 
-  useEffect(() => { if (user?.id) load(); }, [user]);
+  useEffect(() => { if (restaurant?.id) load(); }, [restaurant?.id]);
 
   const handleSave = async () => {
     if (!form.name || !form.price) { toast({ title: 'Name and price required', variant: 'destructive' }); return; }

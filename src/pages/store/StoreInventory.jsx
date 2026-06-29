@@ -1,6 +1,7 @@
 // Store inventory page placeholder.
 import React, { useState, useEffect } from 'react';
 import { api } from '@/services/api/client';
+import { useStoreRestaurant } from '@/lib/useStoreRestaurant';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,18 +12,18 @@ import { useToast } from '@/components/ui/use-toast';
 
 export default function StoreInventory({ user }) {
   const [items, setItems] = useState([]);
-  const [restaurant, setRestaurant] = useState(null);
+  const { restaurant } = useStoreRestaurant(user);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ name: '', sku: '', category: '', unit: 'piece', quantity: '', min_stock: '10', cost_price: '' });
   const { toast } = useToast();
 
   const load = async () => {
-    const restaurants = await api.entities.Restaurant.filter({ owner_id: user.id }, '-created_date', 1);
-    if (restaurants.length > 0) { setRestaurant(restaurants[0]); setItems(await api.entities.InventoryItem.filter({ restaurant_id: restaurants[0].id }, 'name', 50)); }
+    if (!restaurant?.id) return;
+    setItems(await api.entities.InventoryItem.filter({ restaurant_id: restaurant.id }, 'name', 50));
   };
 
-  useEffect(() => { if (user?.id) load(); }, [user]);
+  useEffect(() => { if (restaurant?.id) load(); }, [restaurant?.id]);
 
   const handleSave = async () => {
     if (!form.name) return;

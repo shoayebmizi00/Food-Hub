@@ -32,6 +32,9 @@ import AdminRiders from '@/pages/admin/AdminRiders';
 import AdminCoupons from '@/pages/admin/AdminCoupons';
 import AdminCategories from '@/pages/admin/AdminCategories';
 import AdminSupport from '@/pages/admin/AdminSupport';
+import SuperAdminDashboard from '@/pages/admin/SuperAdminDashboard';
+import AdminSettings from '@/pages/admin/AdminSettings';
+import AdminAuditLogs from '@/pages/admin/AdminAuditLogs';
 
 // Store imports
 import StoreDashboard from '@/pages/store/StoreDashboard';
@@ -143,6 +146,20 @@ const AuthenticatedApp = () => {
             <Route path="coupons" element={<AdminCoupons />} />
             <Route path="categories" element={<AdminCategories />} />
             <Route path="support" element={<AdminSupport />} />
+          </Route>
+
+          {/* Super Admin */}
+          <Route path="/super-admin" element={<SuperAdminDashboard user={currentUser} />}>
+            <Route index element={<AdminHome />} />
+            <Route path="orders" element={<AdminOrders />} />
+            <Route path="restaurants" element={<AdminRestaurants />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="riders" element={<AdminRiders />} />
+            <Route path="coupons" element={<AdminCoupons />} />
+            <Route path="categories" element={<AdminCategories />} />
+            <Route path="support" element={<AdminSupport />} />
+            <Route path="settings" element={<AdminSettings />} />
+            <Route path="audit-logs" element={<AdminAuditLogs />} />
           </Route>
 
           {/* Store */}

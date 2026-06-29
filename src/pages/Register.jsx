@@ -1,7 +1,8 @@
 // Register page placeholder.
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { api } from "@/services/api/client";
+import { getRoleHome } from "@/lib/roles";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,7 @@ import GoogleIcon from "@/components/GoogleIcon";
 import { toast } from "@/components/ui/use-toast";
 
 export default function Register() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -46,7 +48,7 @@ export default function Register() {
       if (result?.access_token) {
         api.auth.setToken(result.access_token);
       }
-      window.location.href = "/";
+      navigate(getRoleHome(result.user?.role), { replace: true });
     } catch (err) {
       setError(err.message || "Invalid verification code");
     } finally {

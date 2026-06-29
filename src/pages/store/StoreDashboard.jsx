@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import { LayoutDashboard, UtensilsCrossed, Package, Warehouse, Receipt, Settings, Menu, X, Tag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useStoreRestaurant } from '@/lib/useStoreRestaurant';
 
 const navItems = [
   { path: '/store', label: 'Dashboard', icon: LayoutDashboard, exact: true },
@@ -17,6 +18,29 @@ const navItems = [
 export default function StoreDashboard({ user }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const { permissions, loading, error } = useStoreRestaurant(user);
+
+  const visibleNav = navItems.filter((item) => {
+    if (user?.role === 'cashier') {
+      return ['/store', '/store/orders'].includes(item.path);
+    }
+    if (user?.role === 'manager' && permissions) {
+      return item.path !== '/store/settings';
+    }
+    return true;
+  });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen pt-20 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-muted border-t-primary rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (error && !['restaurant_owner', 'staff', 'manager', 'cashier', 'admin', 'super_admin'].includes(user?.role)) {
+    return null;
+  }
 
   if (!['restaurant_owner', 'staff', 'manager', 'cashier', 'admin', 'super_admin'].includes(user?.role)) {
     return (
@@ -38,7 +62,7 @@ export default function StoreDashboard({ user }) {
           <p className="text-xs text-muted-foreground">Manage your restaurant</p>
         </div>
         <nav className="flex-1 overflow-y-auto p-3 space-y-0.5">
-          {navItems.map(item => {
+          {visibleNav.map(item => {
             const isActive = item.exact ? location.pathname === item.path : location.pathname.startsWith(item.path) && item.path !== '/store';
             return (
               <Link key={item.path} to={item.path} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted'}`}>
@@ -59,7 +83,7 @@ export default function StoreDashboard({ user }) {
                 <button onClick={() => setSidebarOpen(false)}><X className="w-5 h-5" /></button>
               </div>
               <nav className="flex-1 overflow-y-auto p-3 space-y-0.5">
-                {navItems.map(item => {
+                {visibleNav.map(item => {
                   const isActive = item.exact ? location.pathname === item.path : location.pathname.startsWith(item.path) && item.path !== '/store';
                   return (
                     <Link key={item.path} to={item.path} onClick={() => setSidebarOpen(false)} className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted'}`}>

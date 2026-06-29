@@ -1,7 +1,8 @@
 // Login page placeholder.
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { api } from "@/services/api/client";
+import { getRoleHome } from "@/lib/roles";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +11,7 @@ import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 
 export default function Login() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -20,8 +22,8 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      await api.auth.loginViaEmailPassword(email, password);
-      window.location.href = "/";
+      const result = await api.auth.loginViaEmailPassword(email, password);
+      navigate(getRoleHome(result.user?.role), { replace: true });
     } catch (err) {
       setError(err.message || "Invalid email or password");
     } finally {

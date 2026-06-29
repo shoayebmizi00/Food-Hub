@@ -97,6 +97,7 @@ All seeded accounts use password `Password123!`.
 | Role | Email |
 |---|---|
 | Super Admin | `admin@foodcorner.local` |
+| Admin | `platform-admin@foodcorner.local` |
 | Store Owner | `owner@foodcorner.local` |
 | Customer | `customer@foodcorner.local` |
 | Rider | `rider@foodcorner.local` |
@@ -125,8 +126,77 @@ with the provider SDK call and webhook signature verification.
 
 ## Production deployment
 
-- Deploy the frontend build produced by `npm run build` to a static host.
-- Deploy `backend/` as a Node.js service and run `npm run db:deploy` during release.
-- Use a managed PostgreSQL database and set `DATABASE_URL`.
-- Set `FRONTEND_URL` to the deployed frontend origin.
-- Set a strong `JWT_SECRET` and HTTPS-only gateway webhook URLs.
+### Architecture
+
+- **Frontend:** Vite React static build (nginx Docker image or any static host)
+- **Backend:** Express API on Render (`https://food-hub-xg61.onrender.com`)
+- **Database:** Supabase PostgreSQL via `DATABASE_URL` (Prisma only — no Supabase Auth client required)
+- **Auth:** Custom JWT + bcrypt (tokens in `localStorage`)
+
+### Render backend settings
+
+| Setting | Value |
+|---|---|
+| Runtime | Docker |
+| Dockerfile Path | `backend/Dockerfile` |
+| Docker Context | `backend` |
+| Health Check | `/api/health` |
+
+The Docker image runs `prisma migrate deploy` before starting the server. Render sets `PORT` automatically.
+
+**Required environment variables (Render):**
+
+```env
+NODE_ENV=production
+DATABASE_URL=postgresql://...   # Supabase connection string (Session pooler recommended)
+JWT_SECRET=<long-random-secret>
+JWT_EXPIRES_IN=7d
+FRONTEND_URL=https://your-frontend-domain.com
+```
+
+Optional payment gateway secrets (backend only): `STRIPE_SECRET_KEY`, `SSLCOMMERZ_*`, `BKASH_*`, `NAGAD_*`
+
+Do **not** put database URLs, JWT secrets, or payment keys in the frontend.
+
+### Frontend deployment
+
+Build with the production API URL baked in:
+
+```bash
+VITE_API_URL=https://food-hub-xg61.onrender.com/api npm run build
+```
+
+Or set `VITE_API_URL` in your static host build environment.
+
+```env
+VITE_API_URL=https://food-hub-xg61.onrender.com/api
+```
+
+Deploy the `dist/` folder (or use the root `Dockerfile` nginx image).
+
+### Supabase
+
+Use Supabase **only as PostgreSQL** for this project. Set `DATABASE_URL` in Render to your Supabase connection string. No `@supabase/supabase-js` client is required unless you add Supabase Auth later.
+
+### Local Docker
+
+```bash
+# PostgreSQL only
+docker compose up -d
+
+# Backend image
+docker build -t food-hub-api ./backend
+
+# Frontend image
+docker build --build-arg VITE_API_URL=http://localhost:4000/api -t food-hub-web .
+```
+
+### Post-deploy database setup
+
+On first deploy to a fresh database:
+
+```bash
+cd backend
+npx prisma migrate deploy
+npx prisma db seed
+```
