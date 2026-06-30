@@ -10,4 +10,4 @@ COPY src ./src
 ENV NODE_ENV=production
 EXPOSE 10000
 
-CMD ["sh", "-c", "npm run db:deploy && npm start"]
+CMD ["sh", "-c", "npm run db:deploy || echo 'Prisma migration deploy failed; starting API so health endpoints can report diagnostics.'; npm start"]
