@@ -1,11 +1,22 @@
-const DEFAULT_PRODUCTION_API_URL = "https://food-hub-xg61.onrender.com/api"
-const DEFAULT_DEVELOPMENT_API_URL = "http://localhost:4000/api"
+const DEFAULT_LOCAL_API_URL = "http://localhost:4000/api"
 
-const API_URL = (
-  import.meta.env.VITE_API_URL ||
-  (import.meta.env.DEV ? DEFAULT_DEVELOPMENT_API_URL : DEFAULT_PRODUCTION_API_URL)
-).replace(/\/$/, "")
+export const API_URL = (import.meta.env.VITE_API_URL || DEFAULT_LOCAL_API_URL).replace(/\/$/, "")
 const TOKEN_KEY = "food_corner_access_token"
+
+export function getApiDiagnostics(path = "") {
+  return {
+    baseUrl: API_URL,
+    requestUrl: `${API_URL}${path}`,
+    configuredBy: import.meta.env.VITE_API_URL ? "VITE_API_URL" : "local fallback",
+  }
+}
+
+export async function checkApiHealth() {
+  const response = await fetch(`${API_URL}/health`)
+  const payload = await response.json().catch(() => ({}))
+  if (!response.ok) throw new Error(payload.message || `Health check failed (${response.status})`)
+  return payload
+}
 
 const resourceNames = {
   User: "users", Restaurant: "restaurants", FoodCategory: "foodcategories",
@@ -36,7 +47,7 @@ export async function request(path, options = {}) {
     })
   } catch (error) {
     throw new Error(
-      `Unable to reach the API at ${API_URL}. Check VITE_API_URL, Render service status, and CORS settings.`,
+      `Unable to reach the API at ${API_URL}. Check VITE_API_URL, Render service status, and CORS settings. Request URL: ${API_URL}${path}.`,
       { cause: error },
     )
   }

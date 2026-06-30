@@ -1,7 +1,7 @@
 // Login page placeholder.
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { api } from "@/services/api/client";
+import { api, checkApiHealth, getApiDiagnostics } from "@/services/api/client";
 import { getRoleHome } from "@/lib/roles";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,20 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [health, setHealth] = useState({ status: "checking" });
+  const diagnostics = useMemo(() => getApiDiagnostics("/auth/login"), []);
+
+  useEffect(() => {
+    let active = true;
+    checkApiHealth()
+      .then((payload) => {
+        if (active) setHealth({ status: "ok", message: payload.status || "ok" });
+      })
+      .catch((err) => {
+        if (active) setHealth({ status: "error", message: err.message });
+      });
+    return () => { active = false; };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -76,6 +90,13 @@ export default function Login() {
           {error}
         </div>
       )}
+
+      <div className="mb-4 rounded-lg border border-border bg-muted/40 p-3 text-xs text-muted-foreground space-y-1 break-all">
+        <div>API: {diagnostics.baseUrl}</div>
+        <div>Health: {health.status}{health.message ? ` - ${health.message}` : ""}</div>
+        <div>Request: {diagnostics.requestUrl}</div>
+        {error && <div className="text-destructive">Last error: {error}</div>}
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">

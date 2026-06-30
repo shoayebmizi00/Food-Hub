@@ -1,7 +1,7 @@
 // Register page placeholder.
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { api } from "@/services/api/client";
+import { api, checkApiHealth, getApiDiagnostics } from "@/services/api/client";
 import { getRoleHome } from "@/lib/roles";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,21 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
+  const [health, setHealth] = useState({ status: "checking" });
+  const registerDiagnostics = useMemo(() => getApiDiagnostics("/auth/register"), []);
+  const verifyDiagnostics = useMemo(() => getApiDiagnostics("/auth/verify-otp"), []);
+
+  useEffect(() => {
+    let active = true;
+    checkApiHealth()
+      .then((payload) => {
+        if (active) setHealth({ status: "ok", message: payload.status || "ok" });
+      })
+      .catch((err) => {
+        if (active) setHealth({ status: "error", message: err.message });
+      });
+    return () => { active = false; };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -89,6 +104,12 @@ export default function Register() {
             {error}
           </div>
         )}
+        <div className="mb-4 rounded-lg border border-border bg-muted/40 p-3 text-xs text-muted-foreground space-y-1 break-all">
+          <div>API: {verifyDiagnostics.baseUrl}</div>
+          <div>Health: {health.status}{health.message ? ` - ${health.message}` : ""}</div>
+          <div>Request: {verifyDiagnostics.requestUrl}</div>
+          {error && <div className="text-destructive">Last error: {error}</div>}
+        </div>
         <div className="flex justify-center mb-6">
           <InputOTP
             maxLength={6}
@@ -168,6 +189,13 @@ export default function Register() {
           {error}
         </div>
       )}
+
+      <div className="mb-4 rounded-lg border border-border bg-muted/40 p-3 text-xs text-muted-foreground space-y-1 break-all">
+        <div>API: {registerDiagnostics.baseUrl}</div>
+        <div>Health: {health.status}{health.message ? ` - ${health.message}` : ""}</div>
+        <div>Request: {registerDiagnostics.requestUrl}</div>
+        {error && <div className="text-destructive">Last error: {error}</div>}
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
