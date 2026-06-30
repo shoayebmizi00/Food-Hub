@@ -5,6 +5,12 @@ dist
 frontend/dist
 .git
 .env
+.env.*
+!.env.example
 frontend/.env
+frontend/.env.*
+!frontend/.env.example
 backend/.env
+backend/.env.*
+!backend/.env.example
 npm-debug.log

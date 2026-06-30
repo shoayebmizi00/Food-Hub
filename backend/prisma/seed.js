@@ -2,9 +2,26 @@ import bcrypt from "bcryptjs"
 import { PrismaClient } from "@prisma/client"
 
 const prisma = new PrismaClient()
-const passwordHash = await bcrypt.hash("Password123!", 12)
+const isProduction = process.env.NODE_ENV === "production"
+const requiredSeedVars = ["SEED_USER_PASSWORD"]
 
-async function user(email, fullName, role) {
+if (isProduction) {
+  requiredSeedVars.push("SUPER_ADMIN_EMAIL", "SUPER_ADMIN_PASSWORD", "SUPER_ADMIN_NAME")
+}
+
+const missingSeedVars = requiredSeedVars.filter((key) => !process.env[key])
+
+if (missingSeedVars.length > 0) {
+  throw new Error(`Missing required seed environment variables: ${missingSeedVars.join(", ")}`)
+}
+
+const seedPassword = process.env.SEED_USER_PASSWORD
+const superAdminEmail = process.env.SUPER_ADMIN_EMAIL || "admin@foodcorner.local"
+const superAdminName = process.env.SUPER_ADMIN_NAME || "Super Admin"
+const superAdminPassword = process.env.SUPER_ADMIN_PASSWORD || seedPassword
+
+async function user(email, fullName, role, password = seedPassword) {
+  const passwordHash = await bcrypt.hash(password, 12)
   return prisma.user.upsert({
     where: { email },
     update: {},
@@ -13,7 +30,7 @@ async function user(email, fullName, role) {
 }
 
 async function main() {
-  const superAdmin = await user("admin@foodcorner.local", "Super Admin", "SUPER_ADMIN")
+  const superAdmin = await user(superAdminEmail, superAdminName, "SUPER_ADMIN", superAdminPassword)
   await user("platform-admin@foodcorner.local", "Platform Admin", "ADMIN")
   const owner = await user("owner@foodcorner.local", "Demo Store Owner", "RESTAURANT_OWNER")
   const customer = await user("customer@foodcorner.local", "Demo Customer", "CUSTOMER")

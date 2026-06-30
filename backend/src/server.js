@@ -1,9 +1,11 @@
 import { app } from "./app.js"
-import { config } from "./config.js"
+import { config, validateEnvironment } from "./config.js"
 import { prisma } from "./lib/prisma.js"
 
+validateEnvironment()
+
 const server = app.listen(config.port, () => {
-  console.log(`Food Corner API running at http://localhost:${config.port}`)
+  console.log(`Food Corner API listening on port ${config.port}`)
 })
 
 async function shutdown() {

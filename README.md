@@ -18,7 +18,7 @@ Food Corner is a local full-stack food delivery application:
 From the project root:
 
 ```bash
-copy .env.example .env
+copy frontend\.env.example frontend\.env
 npm install --prefix frontend
 ```
 
@@ -43,6 +43,7 @@ Change `JWT_SECRET` in `backend/.env` before deployment.
 With Docker:
 
 ```bash
+copy .env.example .env
 docker compose up -d postgres
 ```
 
@@ -58,6 +59,8 @@ npm run prisma:generate
 npm run db:deploy
 npm run db:seed
 ```
+
+Set `SEED_USER_PASSWORD` in `backend/.env` before running `npm run db:seed`.
 
 For schema development, use:
 
@@ -92,7 +95,7 @@ npm run dev:all
 
 ## Demo accounts
 
-All seeded accounts use password `Password123!`.
+Seeded demo accounts use the password from `SEED_USER_PASSWORD`.
 
 | Role | Email |
 |---|---|
@@ -104,7 +107,7 @@ All seeded accounts use password `Password123!`.
 | Manager | `manager@foodcorner.local` |
 | Cashier | `cashier@foodcorner.local` |
 
-New local registrations use development OTP `123456` unless `DEV_OTP` is changed.
+New local registrations use the value of `DEV_OTP`.
 
 ## API structure
 
@@ -129,7 +132,7 @@ with the provider SDK call and webhook signature verification.
 ### Architecture
 
 - **Frontend:** Vite React static build (nginx Docker image or any static host)
-- **Backend:** Express API on Render (`https://food-hub-xg61.onrender.com`)
+- **Backend:** Express API on Render (`https://your-render-backend.onrender.com`)
 - **Database:** Supabase PostgreSQL via `DATABASE_URL` (Prisma only — no Supabase Auth client required)
 - **Auth:** Custom JWT + bcrypt (tokens in `localStorage`)
 
@@ -152,6 +155,7 @@ DATABASE_URL=postgresql://...   # Supabase connection string (Session pooler rec
 JWT_SECRET=<long-random-secret>
 JWT_EXPIRES_IN=7d
 FRONTEND_URL=https://your-frontend-domain.com
+ALLOWED_ORIGINS=https://your-frontend-domain.com
 ```
 
 Optional payment gateway secrets (backend only): `STRIPE_SECRET_KEY`, `SSLCOMMERZ_*`, `BKASH_*`, `NAGAD_*`
@@ -163,13 +167,13 @@ Do **not** put database URLs, JWT secrets, or payment keys in the frontend.
 Build with the production API URL baked in:
 
 ```bash
-VITE_API_URL=https://food-hub-xg61.onrender.com/api npm run build
+VITE_API_URL=https://your-render-backend.onrender.com/api npm run build
 ```
 
 Or set `VITE_API_URL` in your static host build environment.
 
 ```env
-VITE_API_URL=https://food-hub-xg61.onrender.com/api
+VITE_API_URL=https://your-render-backend.onrender.com/api
 ```
 
 Deploy the `frontend/dist/` folder (or use `frontend/Dockerfile` with the repository root as the Docker context).
