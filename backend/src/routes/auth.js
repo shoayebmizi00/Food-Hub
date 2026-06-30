@@ -28,10 +28,12 @@ authRouter.post("/register", async (req, res) => {
     role: z.string().optional(),
   }).parse(req.body)
 
-  const allowedRoles = new Set(["customer", "restaurant_owner", "rider"])
+  const allowedRoles = new Set(["customer", "restaurant_owner", "store_owner", "shop_owner", "rider"])
   const roleMap = {
     customer: "CUSTOMER",
     restaurant_owner: "RESTAURANT_OWNER",
+    store_owner: "STORE_OWNER",
+    shop_owner: "SHOP_OWNER",
     rider: "RIDER",
   }
   const requestedRole = allowedRoles.has(input.role) ? roleMap[input.role] : "CUSTOMER"
@@ -82,6 +84,10 @@ authRouter.post("/login", async (req, res) => {
   }
   if (!user.isActive) return res.status(403).json({ message: "Account is disabled" })
   res.json({ access_token: signToken(user), user: publicUser(user) })
+})
+
+authRouter.post("/logout", (_req, res) => {
+  res.json({ message: "Logged out" })
 })
 
 authRouter.get("/me", requireAuth, (req, res) => res.json(publicUser(req.user)))

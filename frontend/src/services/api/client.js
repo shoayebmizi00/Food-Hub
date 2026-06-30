@@ -1,4 +1,10 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api"
+const DEFAULT_PRODUCTION_API_URL = "https://food-hub-xg61.onrender.com/api"
+const DEFAULT_DEVELOPMENT_API_URL = "http://localhost:4000/api"
+
+const API_URL = (
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV ? DEFAULT_DEVELOPMENT_API_URL : DEFAULT_PRODUCTION_API_URL)
+).replace(/\/$/, "")
 const TOKEN_KEY = "food_corner_access_token"
 
 const resourceNames = {
@@ -17,14 +23,24 @@ export const setToken = (token) =>
 
 export async function request(path, options = {}) {
   const token = getToken()
-  const response = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token && { Authorization: `Bearer ${token}` }),
-      ...options.headers,
-    },
-  })
+  let response
+
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
+        ...options.headers,
+      },
+    })
+  } catch (error) {
+    throw new Error(
+      `Unable to reach the API at ${API_URL}. Check VITE_API_URL, Render service status, and CORS settings.`,
+      { cause: error },
+    )
+  }
+
   if (response.status === 204) return null
   const payload = await response.json().catch(() => ({}))
   if (!response.ok) {
@@ -97,6 +113,7 @@ export const api = {
     resendOtp: (email) =>
       request("/auth/resend-otp", { method: "POST", body: JSON.stringify({ email }) }),
     me: () => request("/auth/me"),
+    logoutSession: () => request("/auth/logout", { method: "POST" }),
     updateMe: (data) =>
       request("/auth/me", { method: "PATCH", body: JSON.stringify(data) }),
     resetPasswordRequest: (email) =>

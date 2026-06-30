@@ -10,6 +10,8 @@ datasource db {
 enum Role {
   CUSTOMER
   RESTAURANT_OWNER
+  SHOP_OWNER
+  STORE_OWNER
   RIDER
   ADMIN
   SUPER_ADMIN

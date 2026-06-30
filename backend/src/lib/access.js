@@ -1,10 +1,17 @@
 import { prisma } from "./prisma.js"
 
 export const ADMIN_ROLES = new Set(["ADMIN", "SUPER_ADMIN"])
-export const STORE_ROLES = new Set(["RESTAURANT_OWNER", "STAFF", "MANAGER", "CASHIER"])
+export const STORE_ROLES = new Set([
+  "RESTAURANT_OWNER",
+  "STORE_OWNER",
+  "SHOP_OWNER",
+  "STAFF",
+  "MANAGER",
+  "CASHIER",
+])
 
 export async function getRestaurantIdsForUser(userId, role) {
-  if (role === "RESTAURANT_OWNER") {
+  if (["RESTAURANT_OWNER", "STORE_OWNER", "SHOP_OWNER"].includes(role)) {
     const restaurants = await prisma.restaurant.findMany({
       where: { ownerId: userId },
       select: { id: true },
@@ -29,7 +36,7 @@ export async function getRiderIdForUser(userId) {
 export async function userCanAccessRestaurant(user, restaurantId) {
   if (!user || !restaurantId) return false
   if (ADMIN_ROLES.has(user.role)) return true
-  if (user.role === "RESTAURANT_OWNER") {
+  if (["RESTAURANT_OWNER", "STORE_OWNER", "SHOP_OWNER"].includes(user.role)) {
     const restaurant = await prisma.restaurant.findFirst({
       where: { id: restaurantId, ownerId: user.id },
       select: { id: true },
@@ -82,8 +89,8 @@ export async function buildReadScope(config, user, where = {}) {
       if (user.role === "RIDER") return { ...where, userId: user.id }
       return where
     case "restaurant":
-      if (user.role === "RESTAURANT_OWNER") return { ...where, ownerId: user.id }
-      if (STORE_ROLES.has(user.role) && user.role !== "RESTAURANT_OWNER") {
+      if (["RESTAURANT_OWNER", "STORE_OWNER", "SHOP_OWNER"].includes(user.role)) return { ...where, ownerId: user.id }
+      if (STORE_ROLES.has(user.role)) {
         const ids = await getRestaurantIdsForUser(user.id, user.role)
         return { ...where, id: scopedIn(ids) }
       }
@@ -144,7 +151,7 @@ export async function enforceWriteScope(config, user, data, existing = null) {
       }
       break
     case "restaurant":
-      if (user.role === "RESTAURANT_OWNER") next.ownerId = user.id
+      if (["RESTAURANT_OWNER", "STORE_OWNER", "SHOP_OWNER"].includes(user.role)) next.ownerId = user.id
       break
     case "foodCategory":
     case "foodItem":
@@ -199,7 +206,7 @@ export async function canReadRecord(config, user, row) {
     case "deliveryRider":
       return user.role !== "RIDER" || row.userId === user.id
     case "restaurant":
-      if (user.role === "RESTAURANT_OWNER") return row.ownerId === user.id
+      if (["RESTAURANT_OWNER", "STORE_OWNER", "SHOP_OWNER"].includes(user.role)) return row.ownerId === user.id
       if (STORE_ROLES.has(user.role)) return userCanAccessRestaurant(user, row.id)
       return false
     case "foodCategory":

@@ -2,8 +2,10 @@ export const ROLE_HOME = {
   super_admin: "/super-admin",
   admin: "/admin",
   restaurant_owner: "/store",
+  shop_owner: "/store",
+  store_owner: "/store",
   manager: "/store",
-  cashier: "/store",
+  cashier: "/pos",
   staff: "/store",
   rider: "/rider",
   customer: "/",
@@ -22,7 +24,7 @@ export function isSuperAdmin(role) {
 }
 
 export function isStoreRole(role) {
-  return ["restaurant_owner", "staff", "manager", "cashier", "admin", "super_admin"].includes(role)
+  return ["restaurant_owner", "shop_owner", "store_owner", "staff", "manager", "cashier", "admin", "super_admin"].includes(role)
 }
 
 export function isRiderRole(role) {

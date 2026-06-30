@@ -132,7 +132,7 @@ with the provider SDK call and webhook signature verification.
 ### Architecture
 
 - **Frontend:** Vite React static build (nginx Docker image or any static host)
-- **Backend:** Express API on Render (`https://your-render-backend.onrender.com`)
+- **Backend:** Express API on Render (`https://food-hub-xg61.onrender.com`)
 - **Database:** Supabase PostgreSQL via `DATABASE_URL` (Prisma only — no Supabase Auth client required)
 - **Auth:** Custom JWT + bcrypt (tokens in `localStorage`)
 
@@ -167,13 +167,13 @@ Do **not** put database URLs, JWT secrets, or payment keys in the frontend.
 Build with the production API URL baked in:
 
 ```bash
-VITE_API_URL=https://your-render-backend.onrender.com/api npm run build
+VITE_API_URL=https://food-hub-xg61.onrender.com/api npm run build
 ```
 
 Or set `VITE_API_URL` in your static host build environment.
 
 ```env
-VITE_API_URL=https://your-render-backend.onrender.com/api
+VITE_API_URL=https://food-hub-xg61.onrender.com/api
 ```
 
 Deploy the `frontend/dist/` folder (or use `frontend/Dockerfile` with the repository root as the Docker context).

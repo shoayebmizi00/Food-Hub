@@ -46,6 +46,6 @@ Use these for the Dockerized backend service on Render. Do not add backend secre
 
 | Variable | Required | Description |
 | --- | --- | --- |
-| VITE_API_URL | Yes | Render backend API base URL, for example `https://your-render-backend.onrender.com/api`. |
+| VITE_API_URL | Yes | Render backend API base URL: `https://food-hub-xg61.onrender.com/api`. |
 
 This is a Vite app, so only variables prefixed with `VITE_` are exposed to frontend code.

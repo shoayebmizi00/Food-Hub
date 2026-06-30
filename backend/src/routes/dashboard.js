@@ -41,7 +41,7 @@ dashboardRouter.get("/store-context", requireAuth, async (req, res) => {
 
   if (ADMIN_ROLES.has(role)) {
     restaurants = await prisma.restaurant.findMany({ orderBy: { createdAt: "desc" }, take: 20 })
-  } else if (role === "RESTAURANT_OWNER") {
+  } else if (["RESTAURANT_OWNER", "STORE_OWNER", "SHOP_OWNER"].includes(role)) {
     restaurants = await prisma.restaurant.findMany({
       where: { ownerId: req.user.id },
       orderBy: { createdAt: "desc" },
@@ -60,11 +60,11 @@ dashboardRouter.get("/store-context", requireAuth, async (req, res) => {
     restaurants,
     role: role.toLowerCase(),
     permissions: {
-      canManageMenu: ["RESTAURANT_OWNER", "MANAGER", "STAFF", "ADMIN", "SUPER_ADMIN"].includes(role),
-      canManageOrders: ["RESTAURANT_OWNER", "MANAGER", "STAFF", "CASHIER", "ADMIN", "SUPER_ADMIN"].includes(role),
-      canManageInventory: ["RESTAURANT_OWNER", "MANAGER", "STAFF", "ADMIN", "SUPER_ADMIN"].includes(role),
-      canManageSettings: ["RESTAURANT_OWNER", "ADMIN", "SUPER_ADMIN"].includes(role),
-      canUsePos: ["RESTAURANT_OWNER", "CASHIER", "MANAGER", "ADMIN", "SUPER_ADMIN"].includes(role),
+      canManageMenu: ["RESTAURANT_OWNER", "STORE_OWNER", "SHOP_OWNER", "MANAGER", "STAFF", "ADMIN", "SUPER_ADMIN"].includes(role),
+      canManageOrders: ["RESTAURANT_OWNER", "STORE_OWNER", "SHOP_OWNER", "MANAGER", "STAFF", "CASHIER", "ADMIN", "SUPER_ADMIN"].includes(role),
+      canManageInventory: ["RESTAURANT_OWNER", "STORE_OWNER", "SHOP_OWNER", "MANAGER", "STAFF", "ADMIN", "SUPER_ADMIN"].includes(role),
+      canManageSettings: ["RESTAURANT_OWNER", "STORE_OWNER", "SHOP_OWNER", "ADMIN", "SUPER_ADMIN"].includes(role),
+      canUsePos: ["RESTAURANT_OWNER", "STORE_OWNER", "SHOP_OWNER", "CASHIER", "MANAGER", "ADMIN", "SUPER_ADMIN"].includes(role),
     },
   }))
 })

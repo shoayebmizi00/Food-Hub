@@ -34,10 +34,24 @@ app.get("/api/db-health", async (_req, res, next) => {
     next(error)
   }
 })
+app.get("/api/system-health", async (_req, res, next) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`
+    res.json({
+      status: "ok",
+      api: "connected",
+      database: "connected",
+      provider: "Supabase PostgreSQL",
+    })
+  } catch (error) {
+    next(error)
+  }
+})
 app.use("/api/auth", authRouter)
 app.use("/api/dashboard", dashboardRouter)
 app.use("/api/payments", paymentsRouter)
 app.use("/api/resources", resourcesRouter)
+app.use("/api", resourcesRouter)
 
 app.use(notFound)
 app.use(errorHandler)

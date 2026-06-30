@@ -14,8 +14,13 @@ export const resourcesRouter = express.Router()
 const resources = {
   users: { model: "user", adminOnly: true },
   restaurants: { model: "restaurant", publicRead: true, managerWrite: true },
+  stores: { model: "restaurant", publicRead: true, managerWrite: true },
+  shops: { model: "restaurant", publicRead: true, managerWrite: true },
   foodcategories: { model: "foodCategory", publicRead: true, managerWrite: true },
+  categories: { model: "foodCategory", publicRead: true, managerWrite: true },
   fooditems: { model: "foodItem", publicRead: true, managerWrite: true },
+  foods: { model: "foodItem", publicRead: true, managerWrite: true },
+  products: { model: "foodItem", publicRead: true, managerWrite: true },
   addresses: { model: "address", customerWrite: true },
   cartitems: { model: "cartItem", customerWrite: true },
   favorites: { model: "favorite", customerWrite: true },

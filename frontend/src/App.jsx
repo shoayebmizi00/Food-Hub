@@ -172,9 +172,13 @@ const AuthenticatedApp = () => {
             <Route path="categories" element={<StoreCategories user={currentUser} />} />
             <Route path="settings" element={<StoreSettings user={currentUser} />} />
           </Route>
+          <Route path="/store/dashboard" element={<Navigate to="/store" replace />} />
+          <Route path="/restaurant/dashboard" element={<Navigate to="/store" replace />} />
+          <Route path="/pos" element={<Navigate to="/store" replace />} />
 
           {/* Rider */}
           <Route path="/rider" element={<RiderDashboard user={currentUser} />} />
+          <Route path="/rider/dashboard" element={<Navigate to="/rider" replace />} />
         </Route>
 
         <Route path="*" element={<PageNotFound />} />
